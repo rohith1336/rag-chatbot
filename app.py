@@ -79,17 +79,18 @@ print("-"*30)
 if "uploaded_file" in st.session_state:
     st.write("File indexed successfully, ask your questions now!")
 else:
-    st.session_state.uploaded_file = st.file_uploader(
+    uploaded_file = st.file_uploader(
         "Upload PDF",
         type="pdf",
         accept_multiple_files=False
     )
-    if st.session_state.uploaded_file:
+    if uploaded_file:
         with st.spinner("Indexing...", show_time=True):
-            upload_pdf(st.session_state.uploaded_file)
-            documents = load_pdf(pdfs_directory + st.session_state.uploaded_file.name)
+            upload_pdf(uploaded_file)
+            documents = load_pdf(pdfs_directory + uploaded_file.name)
             chunked_documents = split_text(documents)
             index_docs(chunked_documents)
+            st.session_state.uploaded_file = uploaded_file
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
