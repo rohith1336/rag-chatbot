@@ -8,7 +8,11 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_mistralai import MistralAIEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_chroma import Chroma
+from langchain_mistralai import ChatMistralAI
 
+st.set_page_config(
+    page_title="RAG Chatbot"
+)
 
 template = """
 You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. Use three sentences maximum and keep the answer concise.
@@ -29,8 +33,6 @@ vector_store = Chroma(
     persist_directory='./Chroma-DB'
 )
 
-from langchain_mistralai import ChatMistralAI
-
 model =  ChatMistralAI(
     model = 'mistral-small-latest',
     mistral_api_key = os.environ["MISTRAL_API_KEY"],
@@ -38,15 +40,24 @@ model =  ChatMistralAI(
 )
 
 def upload_pdf(file):
+"""
+    Uploads the given PDF file to the specified directory.
+    """
     with open(pdfs_directory + file.name, "wb") as f:
         f.write(file.getbuffer())
 
 def load_pdf(file_path):
+"""
+    Loads the PDF file from the given file path and returns the documents.
+    """
     loader = PDFPlumberLoader(file_path)
     documents = loader.load()
     return documents
 
 def split_text(documents):
+"""
+    Splits the loaded documents into chunks of text.
+    """
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=200,
@@ -66,15 +77,21 @@ def index_docs(all_splits):
         
 
 def retrieve_docs(query):
+"""
+    Retrieves documents from the vector store that are similar to the given query.
+    """
     return vector_store.similarity_search(query)
 
 def answer_question(question, documents):
+"""
+    Generates an answer to the given question using the provided documents as context.
+    """
     context = "\n\n".join([doc.page_content for doc in documents])
     prompt = ChatPromptTemplate.from_template(template)
     chain = prompt | model
     if st.session_state.prompt_history:
         print("prompt history", st.session_state.prompt_history)
-        question = f"{question}, here's the prompts: {', '.join(st.session_state.prompt_history)}"
+        question = f"{question}, here are the previous prompts for more context: {', '.join(st.session_state.prompt_history)}"
     return chain.invoke({"question": question, "context": context})
 
 print("-"*30)
