@@ -72,7 +72,9 @@ def answer_question(question, documents):
     context = "\n\n".join([doc.page_content for doc in documents])
     prompt = ChatPromptTemplate.from_template(template)
     chain = prompt | model
-
+    if st.session_state.prompt_history:
+        print("prompt history", st.session_state.prompt_history)
+        question = f"{question}, here's the prompts: {', '.join(st.session_state.prompt_history)}"
     return chain.invoke({"question": question, "context": context})
 
 print("-"*30)
@@ -94,6 +96,9 @@ else:
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+    
+if "prompt_history" not in st.session_state:
+    st.session_state.prompt_history = []
 
 for message in st.session_state.messages:
     with st.chat_message(message['role']):
@@ -104,14 +109,14 @@ prompt = st.chat_input("Ask your question")
 if prompt:
     with st.chat_message("user"):
         st.markdown(prompt)
-
+        st.session_state.prompt_history.append(prompt)
         st.session_state.messages.append({"role": "user", "content": prompt})
 
 
     with st.chat_message("assistant"):
         message_placeholder = st.empty()
         related_documents = retrieve_docs(prompt)
-        print('related_documents: ', related_documents)
+        print('related_documents #: ', len(related_documents))
         answer = answer_question(prompt, related_documents)
         full_response = answer.content
         message_placeholder.markdown(full_response)
