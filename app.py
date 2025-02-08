@@ -40,14 +40,14 @@ model =  ChatMistralAI(
 )
 
 def upload_pdf(file):
-"""
+    """
     Uploads the given PDF file to the specified directory.
     """
     with open(pdfs_directory + file.name, "wb") as f:
         f.write(file.getbuffer())
 
 def load_pdf(file_path):
-"""
+    """
     Loads the PDF file from the given file path and returns the documents.
     """
     loader = PDFPlumberLoader(file_path)
@@ -55,7 +55,7 @@ def load_pdf(file_path):
     return documents
 
 def split_text(documents):
-"""
+    """
     Splits the loaded documents into chunks of text.
     """
     text_splitter = RecursiveCharacterTextSplitter(
@@ -77,13 +77,13 @@ def index_docs(all_splits):
         
 
 def retrieve_docs(query):
-"""
+    """
     Retrieves documents from the vector store that are similar to the given query.
     """
     return vector_store.similarity_search(query)
 
 def answer_question(question, documents):
-"""
+    """
     Generates an answer to the given question using the provided documents as context.
     """
     context = "\n\n".join([doc.page_content for doc in documents])
